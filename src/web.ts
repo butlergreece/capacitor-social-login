@@ -9,12 +9,10 @@ import type {
   AuthorizationCodeOptions,
   isLoggedInOptions,
   ProviderResponseMap,
-  FacebookLoginOptions,
   ProviderSpecificCall,
   ProviderSpecificCallOptionsMap,
   ProviderSpecificCallResponseMap,
 } from './definitions';
-import { FacebookSocialLogin } from './facebook-provider';
 import { GoogleSocialLogin } from './google-provider';
 
 export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
@@ -22,14 +20,12 @@ export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
 
   private googleProvider: GoogleSocialLogin;
   private appleProvider: AppleSocialLogin;
-  private facebookProvider: FacebookSocialLogin;
 
   constructor() {
     super();
 
     this.googleProvider = new GoogleSocialLogin();
     this.appleProvider = new AppleSocialLogin();
-    this.facebookProvider = new FacebookSocialLogin();
 
     // Set up listener for OAuth redirects if we have a pending OAuth flow
     if (localStorage.getItem(SocialLoginWeb.OAUTH_STATE_KEY)) {
@@ -77,9 +73,6 @@ export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
       );
     }
 
-    if (options.facebook?.appId) {
-      initPromises.push(this.facebookProvider.initialize(options.facebook.appId, options.facebook.locale));
-    }
 
     await Promise.all(initPromises);
   }
@@ -92,24 +85,17 @@ export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
         return this.googleProvider.login(options.options) as Promise<{ provider: T; result: ProviderResponseMap[T] }>;
       case 'apple':
         return this.appleProvider.login(options.options) as Promise<{ provider: T; result: ProviderResponseMap[T] }>;
-      case 'facebook':
-        return this.facebookProvider.login(options.options as FacebookLoginOptions) as Promise<{
-          provider: T;
-          result: ProviderResponseMap[T];
-        }>;
       default:
         throw new Error(`Login for ${options.provider} is not implemented on web`);
     }
   }
 
-  async logout(options: { provider: 'apple' | 'google' | 'facebook' }): Promise<void> {
+  async logout(options: { provider: 'apple' | 'google' }): Promise<void> {
     switch (options.provider) {
       case 'google':
         return this.googleProvider.logout();
       case 'apple':
         return this.appleProvider.logout();
-      case 'facebook':
-        return this.facebookProvider.logout();
       default:
         throw new Error(`Logout for ${options.provider} is not implemented`);
     }
@@ -121,8 +107,6 @@ export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
         return this.googleProvider.isLoggedIn();
       case 'apple':
         return this.appleProvider.isLoggedIn();
-      case 'facebook':
-        return this.facebookProvider.isLoggedIn();
       default:
         throw new Error(`isLoggedIn for ${options.provider} is not implemented`);
     }
@@ -134,8 +118,6 @@ export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
         return this.googleProvider.getAuthorizationCode();
       case 'apple':
         return this.appleProvider.getAuthorizationCode();
-      case 'facebook':
-        return this.facebookProvider.getAuthorizationCode();
       default:
         throw new Error(`getAuthorizationCode for ${options.provider} is not implemented`);
     }
@@ -147,8 +129,6 @@ export class SocialLoginWeb extends WebPlugin implements SocialLoginPlugin {
         return this.googleProvider.refresh();
       case 'apple':
         return this.appleProvider.refresh();
-      case 'facebook':
-        return this.facebookProvider.refresh(options.options as FacebookLoginOptions);
       default:
         throw new Error(`Refresh for ${(options as any).provider} is not implemented`);
     }

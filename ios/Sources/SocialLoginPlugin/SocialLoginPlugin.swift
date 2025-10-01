@@ -20,18 +20,11 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "providerSpecificCall", returnType: CAPPluginReturnPromise)
     ]
     private let apple = AppleProvider()
-    private let facebook = FacebookProvider()
     private let google = GoogleProvider()
 
     @objc func initialize(_ call: CAPPluginCall) {
         var initialized = false
 
-        if let facebookSettings = call.getObject("facebook") {
-            if facebookSettings["appId"] is String {
-                facebook.initialize()
-                initialized = true
-            }
-        }
 
         if let googleSettings = call.getObject("google") {
             let iOSClientId = googleSettings["iOSClientId"] as? String
@@ -133,10 +126,6 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
                 }
             }
         }
-        case "facebook": do {
-            call.resolve([ "isLoggedIn": self.facebook.isLoggedIn() ])
-
-        }
         default:
             call.reject("Invalid provider")
         }
@@ -150,10 +139,6 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         switch provider {
-        case "facebook":
-            facebook.login(payload: payload) { (result: Result<FacebookLoginResponse, Error>) in
-                self.handleLoginResult(result, call: call)
-            }
         case "google":
             google.login(payload: payload) { (result: Result<GoogleLoginResponse, Error>) in
                 self.handleLoginResult(result, call: call)
@@ -173,35 +158,8 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         switch customCall {
-        case "facebook#getProfile":
-            guard let options = call.getObject("options") else {
-                call.reject("options are required")
-                return
-            }
-            guard let fields = options["fields"] as? [String] else {
-                call.reject("options are required")
-                return
-            }
-
-            facebook.getProfile(fields: fields, completion: { res in
-                switch res {
-                case .success(let profile):
-                    call.resolve(["profile": profile as Any])
-                case .failure(let error):
-                    call.reject(error.localizedDescription)
-                }
-            })
-        case "facebook#requestTracking":
-            facebook.requestTracking(completion: { res in
-                switch res {
-                case .success(let status):
-                    call.resolve(["status": status])
-                case .failure(let error):
-                    call.reject(error.localizedDescription)
-                }
-            })
         default:
-            call.reject("Invalid call. Supported calls: facebook#getProfile, facebook#requestTracking")
+            call.reject("Invalid call")
         }
     }
 
@@ -212,10 +170,6 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         switch provider {
-        case "facebook":
-            facebook.logout { result in
-                self.handleLogoutResult(result, call: call)
-            }
         case "google":
             google.logout { result in
                 self.handleLogoutResult(result, call: call)
@@ -236,10 +190,6 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         switch provider {
-        case "facebook":
-            facebook.refresh(viewController: self.bridge?.viewController) { result in
-                self.handleRefreshResult(result, call: call)
-            }
         case "google":
             google.refresh { result in
                 self.handleRefreshResult(result, call: call)
@@ -361,16 +311,6 @@ public class SocialLoginPlugin: CAPPlugin, CAPBridgedPlugin {
                 call.resolve([
                     "provider": "google",
                     "result": googleResult
-                ])
-            } else if let facebookResponse = response as? FacebookLoginResponse {
-                let facebookResult: [String: Any] = [
-                    "accessToken": facebookResponse.accessToken,
-                    "profile": facebookResponse.profile,
-                    "idToken": facebookResponse.idToken ?? ""
-                ]
-                call.resolve([
-                    "provider": "facebook",
-                    "result": facebookResult
                 ])
             } else {
                 call.reject("Unsupported provider response")

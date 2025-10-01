@@ -85,27 +85,6 @@ public class SocialLoginPlugin extends Plugin {
             this.socialProviderHashMap.put("google", googleProvider);
         }
 
-        JSObject facebook = call.getObject("facebook");
-        if (facebook != null) {
-            String facebookAppId = facebook.getString("appId");
-            String facebookClientToken = facebook.getString("clientToken");
-            if (facebookAppId == null || facebookAppId.isEmpty()) {
-                call.reject("facebook.appId is null or empty");
-                return;
-            }
-            if (facebookClientToken == null || facebookClientToken.isEmpty()) {
-                call.reject("facebook.clientToken is null or empty");
-                return;
-            }
-            FacebookProvider facebookProvider = new FacebookProvider(this.getActivity());
-            try {
-                facebookProvider.initialize(facebook);
-                this.socialProviderHashMap.put("facebook", facebookProvider);
-            } catch (Exception e) {
-                call.reject("Failed to initialize Facebook provider: " + e.getMessage());
-                return;
-            }
-        }
 
         call.resolve();
     }
@@ -201,31 +180,8 @@ public class SocialLoginPlugin extends Plugin {
         }
 
         switch (customCall) {
-            case "facebook#getProfile":
-                JSObject options = call.getObject("options", new JSObject());
-                if (options == null) {
-                    call.reject("Options are required");
-                    return;
-                }
-
-                JSONArray fieldsArray = null;
-                try {
-                    fieldsArray = options.getJSONArray("fields");
-                } catch (JSONException e) {
-                    call.reject("Fields array is required");
-                    return;
-                }
-
-                SocialProvider provider = this.socialProviderHashMap.get("facebook");
-                if (provider == null || !(provider instanceof FacebookProvider)) {
-                    call.reject("Facebook provider not initialized");
-                    return;
-                }
-
-                ((FacebookProvider) provider).getProfile(fieldsArray, call);
-                break;
             default:
-                call.reject("Invalid call. Supported calls: facebook#getProfile");
+                call.reject("Invalid call");
         }
     }
 
@@ -260,16 +216,6 @@ public class SocialLoginPlugin extends Plugin {
         super.handleOnActivityResult(requestCode, resultCode, data);
 
         Log.d(LOG_TAG, "SocialLoginPlugin.handleOnActivityResult called");
-
-        // Handle Facebook login result
-        SocialProvider facebookProvider = socialProviderHashMap.get("facebook");
-        if (facebookProvider instanceof FacebookProvider) {
-            boolean handled = ((FacebookProvider) facebookProvider).handleOnActivityResult(requestCode, resultCode, data);
-            if (handled) {
-                Log.d(LOG_TAG, "Facebook activity result handled");
-                return;
-            }
-        }
 
         // Handle other providers' activity results if needed
         Log.d(LOG_TAG, "Activity result not handled by any provider");

@@ -1,21 +1,4 @@
 export interface InitializeOptions {
-  facebook?: {
-    /**
-     * Facebook App ID, provided by Facebook for web, in mobile it's set in the native files
-     */
-    appId: string;
-    /**
-     * Facebook Client Token, provided by Facebook for web, in mobile it's set in the native files
-     */
-    clientToken?: string;
-    /**
-     * Locale
-     * @description The locale to use for the Facebook SDK (e.g., 'en_US', 'fr_FR', 'es_ES')
-     * @default 'en_US'
-     * @example 'fr_FR'
-     */
-    locale?: string;
-  };
 
   google?: {
     /**
@@ -134,24 +117,6 @@ export interface InitializeOptions {
   };
 }
 
-export interface FacebookLoginOptions {
-  /**
-   * Permissions
-   * @description select permissions to login with
-   */
-  permissions: string[];
-  /**
-   * Is Limited Login
-   * @description use limited login for Facebook IOS
-   * @default false
-   */
-  limitedLogin?: boolean;
-  /**
-   * Nonce
-   * @description A custom nonce to use for the login request
-   */
-  nonce?: string;
-}
 
 export interface GoogleLoginOptions {
   /**
@@ -297,10 +262,6 @@ export interface AppleProviderResponse {
 
 export type LoginOptions =
   | {
-      provider: 'facebook';
-      options: FacebookLoginOptions;
-    }
-  | {
       provider: 'google';
       options: GoogleLoginOptions;
     }
@@ -310,10 +271,6 @@ export type LoginOptions =
     };
 
 export type LoginResult =
-  | {
-      provider: 'facebook';
-      result: FacebookLoginResponse;
-    }
   | {
       provider: 'google';
       result: GoogleLoginResponse;
@@ -335,23 +292,6 @@ export interface AccessToken {
   userId?: string;
 }
 
-export interface FacebookLoginResponse {
-  accessToken: AccessToken | null;
-  idToken: string | null;
-  profile: {
-    userID: string;
-    email: string | null;
-    friendIDs: string[];
-    birthday: string | null;
-    ageRange: { min?: number; max?: number } | null;
-    gender: string | null;
-    location: { id: string; name: string } | null;
-    hometown: { id: string; name: string } | null;
-    profileURL: string | null;
-    name: string | null;
-    imageURL: string | null;
-  };
-}
 
 export interface AuthorizationCode {
   /**
@@ -371,7 +311,7 @@ export interface AuthorizationCodeOptions {
    * Provider
    * @description Provider for the authorization code
    */
-  provider: 'apple' | 'google' | 'facebook';
+  provider: 'apple' | 'google';
 }
 
 export interface isLoggedInOptions {
@@ -379,66 +319,19 @@ export interface isLoggedInOptions {
    * Provider
    * @description Provider for the isLoggedIn
    */
-  provider: 'apple' | 'google' | 'facebook';
+  provider: 'apple' | 'google';
 }
 
 // Define the provider-specific call types
-export type ProviderSpecificCall = 'facebook#getProfile' | 'facebook#requestTracking';
-
-// Define the options and response types for each specific call
-export interface FacebookGetProfileOptions {
-  /**
-   * Fields to retrieve from Facebook profile
-   * @example ["id", "name", "email", "picture"]
-   */
-  fields?: string[];
-}
-
-export interface FacebookGetProfileResponse {
-  /**
-   * Facebook profile data
-   */
-  profile: {
-    id: string | null;
-    name: string | null;
-    email: string | null;
-    first_name: string | null;
-    last_name: string | null;
-    picture?: {
-      data: {
-        height: number | null;
-        is_silhouette: boolean | null;
-        url: string | null;
-        width: number | null;
-      };
-    } | null;
-    [key: string]: any; // For additional fields that might be requested
-  };
-}
-
-export type FacebookRequestTrackingOptions = Record<string, never>;
-
-export interface FacebookRequestTrackingResponse {
-  /**
-   * App tracking authorization status
-   */
-  status: 'authorized' | 'denied' | 'notDetermined' | 'restricted';
-}
+export type ProviderSpecificCall = never;
 
 // Map call strings to their options and response types
-export type ProviderSpecificCallOptionsMap = {
-  'facebook#getProfile': FacebookGetProfileOptions;
-  'facebook#requestTracking': FacebookRequestTrackingOptions;
-};
+export type ProviderSpecificCallOptionsMap = Record<string, never>;
 
-export type ProviderSpecificCallResponseMap = {
-  'facebook#getProfile': FacebookGetProfileResponse;
-  'facebook#requestTracking': FacebookRequestTrackingResponse;
-};
+export type ProviderSpecificCallResponseMap = Record<string, never>;
 
 // Add a helper type to map providers to their response types
 export type ProviderResponseMap = {
-  facebook: FacebookLoginResponse;
   google: GoogleLoginResponse;
   apple: AppleProviderResponse;
 };
@@ -460,7 +353,7 @@ export interface SocialLoginPlugin {
    * Logout
    * @description logout the user
    */
-  logout(options: { provider: 'apple' | 'google' | 'facebook' }): Promise<void>;
+  logout(options: { provider: 'apple' | 'google' }): Promise<void>;
   /**
    * IsLoggedIn
    * @description logout the user

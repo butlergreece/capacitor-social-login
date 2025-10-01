@@ -17,11 +17,10 @@ All social logins in one plugin
 This plugin implement social auth for:
 - Google (with credential manager)
 - Apple (with 0auth on android)
-- Facebook ( with latest SDK)
 
 We plan in the future to keep adding others social login and make this plugin the all in one solution.
 
-This plugin is the only one who implement all 3 majors social login on WEB, IOS and Android
+This plugin implement both Google and Apple social login on WEB, IOS and Android
 
 ## Documentation
 
@@ -81,122 +80,6 @@ const res = await SocialLogin.login({
 });
 ```
 
-## Facebook
-
-Docs: [How to setup facebook login](./docs/setup_facebook.md)
-
-### Android configuration
-
-More information can be found here: https://developers.facebook.com/docs/android/getting-started
-
-Then call the `initialize` method with the `facebook` provider
-
-```typescript
-await SocialLogin.initialize({
-  facebook: {
-    appId: 'your-app-id',
-    clientToken: 'your-client-token',
-  },
-});
-const res = await SocialLogin.login({
-  provider: 'facebook',
-  options: {
-    permissions: ['email', 'public_profile'],
-  },
-});
-```
-
-### iOS configuration
-
-In file `ios/App/App/AppDelegate.swift` add or replace the following:
-
-```swift
-import UIKit
-import Capacitor
-import FBSDKCoreKit
-
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        FBSDKCoreKit.ApplicationDelegate.shared.application(
-            application,
-            didFinishLaunchingWithOptions: launchOptions
-        )
-
-        return true
-    }
-
-    ...
-
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        // Called when the app was launched with a url. Feel free to add additional processing here,
-        // but if you want the App API to support tracking app url opens, make sure to keep this call
-        if (FBSDKCoreKit.ApplicationDelegate.shared.application(
-            app,
-            open: url,
-            sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
-            annotation: options[UIApplication.OpenURLOptionsKey.annotation]
-        )) {
-            return true;
-        } else {
-            return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
-        }
-    }
-}
-
-```
-
-Add the following in the `ios/App/App/info.plist` file inside of the outermost `<dict>`:
-
-```xml
-
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>fb[APP_ID]</string>
-        </array>
-    </dict>
-</array>
-<key>FacebookAppID</key>
-<string>[APP_ID]</string>
-<key>FacebookClientToken</key>
-<string>[CLIENT_TOKEN]</string>
-<key>FacebookDisplayName</key>
-<string>[APP_NAME]</string>
-<key>LSApplicationQueriesSchemes</key>
-<array>
-    <string>fbapi</string>
-    <string>fbauth</string>
-    <string>fb-messenger-share-api</string>
-    <string>fbauth2</string>
-    <string>fbshareextension</string>
-</array>
-```
-
-More information can be found here: https://developers.facebook.com/docs/facebook-login/ios
-
-
-Then call the `initialize` method with the `facebook` provider
-
-```typescript
-await SocialLogin.initialize({
-  facebook: {
-    appId: 'your-app-id',
-  },
-});
-const res = await SocialLogin.login({
-  provider: 'facebook',
-  options: {
-    permissions: ['email', 'public_profile'],
-  },
-});
-```
 
 ## Google
 
@@ -302,12 +185,12 @@ but your declaration on Play Console says your app doesn't use advertising ID. Y
 ID declaration.
 ```
 
-**Root Cause**: The Facebook SDK automatically includes the `com.google.android.gms.permission.AD_ID` permission, even when you're only using Google and Apple sign-in.
+**Root Cause**: Some SDKs may automatically include the `com.google.android.gms.permission.AD_ID` permission.
 
 **Solutions**:
 
 #### Solution 1: Remove AD_ID Permission (Recommended)
-If you're not using Facebook login, add this to your app's `android/app/src/main/AndroidManifest.xml`:
+Add this to your app's `android/app/src/main/AndroidManifest.xml`:
 ```xml
 <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 ```
@@ -324,15 +207,7 @@ In Google Play Console → App content → Data safety:
 2. Under "Data types" → "Device or other IDs" → Select "Advertising ID"
 3. Specify usage purpose (usually "App functionality" and/or "Analytics")
 
-#### Solution 3: Conditional Facebook Dependencies (Advanced)
-For advanced users who want to completely exclude Facebook from builds, you can use Gradle's conditional dependencies, but this requires custom build configuration.
-
-**Verification**: After implementing Solution 1, run:
-```bash
-./gradlew :app:dependencies --configuration debugRuntimeClasspath | grep facebook
-```
-
-The Facebook dependencies should still be present (for compatibility), but the AD_ID permission should be removed from your final APK.
+**Verification**: After implementing Solution 1, the AD_ID permission should be removed from your final APK.
 
 ### Google Sign-In with Family Link Supervised Accounts
 
@@ -405,14 +280,14 @@ Initialize the plugin
 ### login(...)
 
 ```typescript
-login<T extends "apple" | "google" | "facebook">(options: Extract<LoginOptions, { provider: T; }>) => Promise<{ provider: T; result: ProviderResponseMap[T]; }>
+login<T extends "apple" | "google">(options: Extract<LoginOptions, { provider: T; }>) => Promise<{ provider: T; result: ProviderResponseMap[T]; }>
 ```
 
 Login with the selected provider
 
-| Param         | Type                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`options`** | <code><a href="#extract">Extract</a>&lt;{ provider: 'facebook'; options: <a href="#facebookloginoptions">FacebookLoginOptions</a>; }, { provider: T; }&gt; \| <a href="#extract">Extract</a>&lt;{ provider: 'google'; options: <a href="#googleloginoptions">GoogleLoginOptions</a>; }, { provider: T; }&gt; \| <a href="#extract">Extract</a>&lt;{ provider: 'apple'; options: <a href="#appleprovideroptions">AppleProviderOptions</a>; }, { provider: T; }&gt;</code> |
+| Param         | Type                                                                                                                                                                                                                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`options`** | <code><a href="#extract">Extract</a>&lt;{ provider: 'google'; options: <a href="#googleloginoptions">GoogleLoginOptions</a>; }, { provider: T; }&gt; \| <a href="#extract">Extract</a>&lt;{ provider: 'apple'; options: <a href="#appleprovideroptions">AppleProviderOptions</a>; }, { provider: T; }&gt;</code> |
 
 **Returns:** <code>Promise&lt;{ provider: T; result: ProviderResponseMap[T]; }&gt;</code>
 
@@ -422,14 +297,14 @@ Login with the selected provider
 ### logout(...)
 
 ```typescript
-logout(options: { provider: 'apple' | 'google' | 'facebook'; }) => Promise<void>
+logout(options: { provider: 'apple' | 'google'; }) => Promise<void>
 ```
 
 Logout
 
-| Param         | Type                                                          |
-| ------------- | ------------------------------------------------------------- |
-| **`options`** | <code>{ provider: 'apple' \| 'google' \| 'facebook'; }</code> |
+| Param         | Type                                            |
+| ------------- | ----------------------------------------------- |
+| **`options`** | <code>{ provider: 'apple' \| 'google'; }</code> |
 
 --------------------
 
@@ -486,16 +361,16 @@ Refresh the access token
 ### providerSpecificCall(...)
 
 ```typescript
-providerSpecificCall<T extends ProviderSpecificCall>(options: { call: T; options: ProviderSpecificCallOptionsMap[T]; }) => Promise<ProviderSpecificCallResponseMap[T]>
+providerSpecificCall<T extends never>(options: { call: T; options: ProviderSpecificCallOptionsMap[T]; }) => Promise<ProviderSpecificCallResponseMap[T]>
 ```
 
 Execute provider-specific calls
 
-| Param         | Type                                                                  |
-| ------------- | --------------------------------------------------------------------- |
-| **`options`** | <code>{ call: T; options: ProviderSpecificCallOptionsMap[T]; }</code> |
+| Param         | Type                                      |
+| ------------- | ----------------------------------------- |
+| **`options`** | <code>{ call: T; options: never; }</code> |
 
-**Returns:** <code>Promise&lt;ProviderSpecificCallResponseMap[T]&gt;</code>
+**Returns:** <code>Promise&lt;never&gt;</code>
 
 --------------------
 
@@ -505,20 +380,20 @@ Execute provider-specific calls
 
 #### InitializeOptions
 
-| Prop           | Type                                                                                                                                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`facebook`** | <code>{ appId: string; clientToken?: string; locale?: string; }</code>                                                                                              |
-| **`google`**   | <code>{ iOSClientId?: string; iOSServerClientId?: string; webClientId?: string; mode?: 'online' \| 'offline'; hostedDomain?: string; redirectUrl?: string; }</code> |
-| **`apple`**    | <code>{ clientId?: string; redirectUrl?: string; useProperTokenExchange?: boolean; useBroadcastChannel?: boolean; }</code>                                          |
+| Prop         | Type                                                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`google`** | <code>{ iOSClientId?: string; iOSServerClientId?: string; webClientId?: string; mode?: 'online' \| 'offline'; hostedDomain?: string; redirectUrl?: string; }</code> |
+| **`apple`**  | <code>{ clientId?: string; redirectUrl?: string; useProperTokenExchange?: boolean; useBroadcastChannel?: boolean; }</code>                                          |
 
 
-#### FacebookLoginResponse
+#### GoogleLoginResponseOnline
 
-| Prop              | Type                                                                                                                                                                                                                                                                                                                                                            |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`accessToken`** | <code><a href="#accesstoken">AccessToken</a> \| null</code>                                                                                                                                                                                                                                                                                                     |
-| **`idToken`**     | <code>string \| null</code>                                                                                                                                                                                                                                                                                                                                     |
-| **`profile`**     | <code>{ userID: string; email: string \| null; friendIDs: string[]; birthday: string \| null; ageRange: { min?: number; max?: number; } \| null; gender: string \| null; location: { id: string; name: string; } \| null; hometown: { id: string; name: string; } \| null; profileURL: string \| null; name: string \| null; imageURL: string \| null; }</code> |
+| Prop               | Type                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`accessToken`**  | <code><a href="#accesstoken">AccessToken</a> \| null</code>                                                                                                        |
+| **`idToken`**      | <code>string \| null</code>                                                                                                                                        |
+| **`profile`**      | <code>{ email: string \| null; familyName: string \| null; givenName: string \| null; id: string \| null; name: string \| null; imageUrl: string \| null; }</code> |
+| **`responseType`** | <code>'online'</code>                                                                                                                                              |
 
 
 #### AccessToken
@@ -534,16 +409,6 @@ Execute provider-specific calls
 | **`token`**               | <code>string</code>   |
 | **`refreshToken`**        | <code>string</code>   |
 | **`userId`**              | <code>string</code>   |
-
-
-#### GoogleLoginResponseOnline
-
-| Prop               | Type                                                                                                                                                               |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`accessToken`**  | <code><a href="#accesstoken">AccessToken</a> \| null</code>                                                                                                        |
-| **`idToken`**      | <code>string \| null</code>                                                                                                                                        |
-| **`profile`**      | <code>{ email: string \| null; familyName: string \| null; givenName: string \| null; id: string \| null; name: string \| null; imageUrl: string \| null; }</code> |
-| **`responseType`** | <code>'online'</code>                                                                                                                                              |
 
 
 #### GoogleLoginResponseOffline
@@ -562,15 +427,6 @@ Execute provider-specific calls
 | **`idToken`**           | <code>string \| null</code>                                                                                  | Identity token (JWT) from Apple                                                       |
 | **`profile`**           | <code>{ user: string; email: string \| null; givenName: string \| null; familyName: string \| null; }</code> | User profile information                                                              |
 | **`authorizationCode`** | <code>string</code>                                                                                          | Authorization code for proper token exchange (when useProperTokenExchange is enabled) |
-
-
-#### FacebookLoginOptions
-
-| Prop               | Type                  | Description      | Default            |
-| ------------------ | --------------------- | ---------------- | ------------------ |
-| **`permissions`**  | <code>string[]</code> | Permissions      |                    |
-| **`limitedLogin`** | <code>boolean</code>  | Is Limited Login | <code>false</code> |
-| **`nonce`**        | <code>string</code>   | Nonce            |                    |
 
 
 #### GoogleLoginOptions
@@ -598,9 +454,9 @@ Execute provider-specific calls
 
 #### isLoggedInOptions
 
-| Prop           | Type                                           | Description |
-| -------------- | ---------------------------------------------- | ----------- |
-| **`provider`** | <code>'apple' \| 'google' \| 'facebook'</code> | Provider    |
+| Prop           | Type                             | Description |
+| -------------- | -------------------------------- | ----------- |
+| **`provider`** | <code>'apple' \| 'google'</code> | Provider    |
 
 
 #### AuthorizationCode
@@ -613,30 +469,9 @@ Execute provider-specific calls
 
 #### AuthorizationCodeOptions
 
-| Prop           | Type                                           | Description |
-| -------------- | ---------------------------------------------- | ----------- |
-| **`provider`** | <code>'apple' \| 'google' \| 'facebook'</code> | Provider    |
-
-
-#### FacebookGetProfileResponse
-
-| Prop          | Type                                                                                                                                                                                                                                                                                               | Description           |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| **`profile`** | <code>{ [key: string]: any; id: string \| null; name: string \| null; email: string \| null; first_name: string \| null; last_name: string \| null; picture?: { data: { height: number \| null; is_silhouette: boolean \| null; url: string \| null; width: number \| null; }; } \| null; }</code> | Facebook profile data |
-
-
-#### FacebookRequestTrackingResponse
-
-| Prop         | Type                                                                     | Description                       |
-| ------------ | ------------------------------------------------------------------------ | --------------------------------- |
-| **`status`** | <code>'authorized' \| 'denied' \| 'notDetermined' \| 'restricted'</code> | App tracking authorization status |
-
-
-#### FacebookGetProfileOptions
-
-| Prop         | Type                  | Description                              |
-| ------------ | --------------------- | ---------------------------------------- |
-| **`fields`** | <code>string[]</code> | Fields to retrieve from Facebook profile |
+| Prop           | Type                             | Description |
+| -------------- | -------------------------------- | ----------- |
+| **`provider`** | <code>'apple' \| 'google'</code> | Provider    |
 
 
 ### Type Aliases
@@ -644,7 +479,7 @@ Execute provider-specific calls
 
 #### ProviderResponseMap
 
-<code>{ facebook: <a href="#facebookloginresponse">FacebookLoginResponse</a>; google: <a href="#googleloginresponse">GoogleLoginResponse</a>; apple: <a href="#appleproviderresponse">AppleProviderResponse</a>; }</code>
+<code>{ google: <a href="#googleloginresponse">GoogleLoginResponse</a>; apple: <a href="#appleproviderresponse">AppleProviderResponse</a>; }</code>
 
 
 #### GoogleLoginResponse
@@ -654,7 +489,7 @@ Execute provider-specific calls
 
 #### LoginOptions
 
-<code>{ provider: 'facebook'; options: <a href="#facebookloginoptions">FacebookLoginOptions</a>; } | { provider: 'google'; options: <a href="#googleloginoptions">GoogleLoginOptions</a>; } | { provider: 'apple'; options: <a href="#appleprovideroptions">AppleProviderOptions</a>; }</code>
+<code>{ provider: 'google'; options: <a href="#googleloginoptions">GoogleLoginOptions</a>; } | { provider: 'apple'; options: <a href="#appleprovideroptions">AppleProviderOptions</a>; }</code>
 
 
 #### Extract
@@ -664,22 +499,12 @@ Execute provider-specific calls
 <code>T extends U ? T : never</code>
 
 
-#### ProviderSpecificCallResponseMap
-
-<code>{ 'facebook#getProfile': <a href="#facebookgetprofileresponse">FacebookGetProfileResponse</a>; 'facebook#requestTracking': <a href="#facebookrequesttrackingresponse">FacebookRequestTrackingResponse</a>; }</code>
-
-
 #### ProviderSpecificCall
 
-<code>'facebook#getProfile' | 'facebook#requestTracking'</code>
+<code>never</code>
 
 
 #### ProviderSpecificCallOptionsMap
-
-<code>{ 'facebook#getProfile': <a href="#facebookgetprofileoptions">FacebookGetProfileOptions</a>; 'facebook#requestTracking': <a href="#facebookrequesttrackingoptions">FacebookRequestTrackingOptions</a>; }</code>
-
-
-#### FacebookRequestTrackingOptions
 
 <code><a href="#record">Record</a>&lt;string, never&gt;</code>
 
@@ -690,12 +515,17 @@ Construct a type with a set of properties K of type T
 
 <code>{ [P in K]: T; }</code>
 
+
+#### ProviderSpecificCallResponseMap
+
+<code><a href="#record">Record</a>&lt;string, never&gt;</code>
+
 </docgen-api>
 
 
 ## Privacy Manifest for App Developers
 
-If you use Google, Facebook, or Apple login, you must declare the data collected by their SDKs in your app's `PrivacyInfo.xcprivacy` file (not in the plugin).
+If you use Google or Apple login, you must declare the data collected by their SDKs in your app's `PrivacyInfo.xcprivacy` file (not in the plugin).
 
 Add this file in your app at: `ios/App/PrivacyInfo.xcprivacy`
 
@@ -706,18 +536,6 @@ Add this file in your app at: `ios/App/PrivacyInfo.xcprivacy`
     { "NSPrivacyCollectedDataType": "EmailAddress", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false },
     { "NSPrivacyCollectedDataType": "Name", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false },
     { "NSPrivacyCollectedDataType": "UserID", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false }
-  ]
-}
-```
-
-### Facebook Login Example
-```json
-{
-  "NSPrivacyCollectedDataTypes": [
-    { "NSPrivacyCollectedDataType": "EmailAddress", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false },
-    { "NSPrivacyCollectedDataType": "Name", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false },
-    { "NSPrivacyCollectedDataType": "UserID", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false },
-    { "NSPrivacyCollectedDataType": "FriendsList", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false }
   ]
 }
 ```
@@ -735,22 +553,16 @@ Add this file in your app at: `ios/App/PrivacyInfo.xcprivacy`
 - Adjust the data types to match your app's usage and the SDK documentation.
 - See [Apple docs](https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/) for all allowed keys and values.
 
-## Combine facebook and google URL handler in `AppDelegate.swift`
+## Google URL handler in `AppDelegate.swift`
 
 ```swift
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
 
-        // Return true if the URL was handled by either Facebook or Google authentication
-        // https://github.com/Cap-go/capacitor-social-login/blob/main/docs/setup_facebook.md#ios-setup
+        // Return true if the URL was handled by Google authentication
         // https://github.com/Cap-go/capacitor-social-login/blob/main/docs/setup_google.md#using-google-login-on-ios
-        if FBSDKCoreKit.ApplicationDelegate.shared.application(
-            app,
-            open: url,
-            sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
-            annotation: options[UIApplication.OpenURLOptionsKey.annotation]
-        ) || GIDSignIn.sharedInstance.handle(url) {
+        if GIDSignIn.sharedInstance.handle(url) {
             return true
         }
 
