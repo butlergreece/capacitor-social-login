@@ -1,6 +1,6 @@
 {
   "name": "@butlergreece/capacitor-social-login",
-  "version": "7.11.10",
+  "version": "7.11.11",
   "description": "All social logins in one plugin",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -13,7 +13,7 @@
     "ios/Sources",
     "ios/Tests",
     "Package.swift",
-    "ButlergreeceCapacitorSocialLogin.podspec"
+    "CapgoCapacitorSocialLogin.podspec"
   ],
   "author": "Martin Donadieu <martin@capgo.app>",
   "license": "MIT",
@@ -42,7 +42,7 @@
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
-    "verify:ios": "xcodebuild -scheme ButlergreeceCapacitorSocialLogin -destination generic/platform=iOS",
+    "verify:ios": "xcodebuild -scheme CapgoCapacitorSocialLogin -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
     "verify:web": "npm run build",
     "lint": "npm run eslint && npm run prettier -- --check && npm run swiftlint -- lint",
