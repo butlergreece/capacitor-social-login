@@ -57,10 +57,10 @@ jobs:
   deploy:
     needs: [build_android, build_ios]
     runs-on: ubuntu-latest
-    name: "Build code and npm release"
+    name: "Build code and GitHub Packages release"
     permissions:
       contents: read
-      id-token: write
+      packages: write
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -77,14 +77,13 @@ jobs:
       - name: Verify
         id: verify_code
         run: bun run verify:web
-      - uses: JS-DevTools/npm-publish@v3
+      - name: Setup .npmrc for GitHub Packages
+        run: |
+          echo "@butlergreece:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+      - name: Publish to GitHub Packages (stable)
         if: ${{ !contains(github.ref, '-alpha.') }}
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          provenance: true
-      - uses: JS-DevTools/npm-publish@v3
+        run: npm publish
+      - name: Publish to GitHub Packages (alpha)
         if: ${{ contains(github.ref, '-alpha.') }}
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          tag: next
-          provenance: true
+        run: npm publish --tag next

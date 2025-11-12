@@ -1,5 +1,5 @@
 {
-  "name": "@capgo/capacitor-social-login",
+  "name": "@butlergreece/capacitor-social-login",
   "version": "7.11.10",
   "description": "All social logins in one plugin",
   "main": "dist/plugin.cjs.js",
@@ -19,10 +19,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Cap-go/capacitor-social-login.git"
+    "url": "git+https://github.com/butlergreece/capacitor-social-login.git"
   },
   "bugs": {
     "url": "https://github.com/Cap-go/capacitor-social-login/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "keywords": [
     "capacitor",
