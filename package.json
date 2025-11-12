@@ -22,7 +22,7 @@
     "url": "git+https://github.com/butlergreece/capacitor-social-login.git"
   },
   "bugs": {
-    "url": "https://github.com/Cap-go/capacitor-social-login/issues"
+    "url": "https://github.com/butlergreece/capacitor-social-login/issues"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
